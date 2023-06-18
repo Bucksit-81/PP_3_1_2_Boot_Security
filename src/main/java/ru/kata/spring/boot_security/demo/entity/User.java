@@ -1,10 +1,7 @@
 package ru.kata.spring.boot_security.demo.entity;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import javax.persistence.*;
@@ -32,10 +29,7 @@ public class User implements UserDetails {
     @Column
     private Byte age;
 
-    @Column
-    private String email;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -45,17 +39,6 @@ public class User implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream().map(role -> new SimpleGrantedAuthority(role.getAuthority())).collect(Collectors.toList());
     }
-
-    public User(String name, String surname, String password,
-                Byte age, String email, Collection<Role> roles) {
-        this.name = name;
-        this.surname = surname;
-        this.password = password;
-        this.age = age;
-        this.email = email;
-        this.roles = roles;
-    }
-
 
     @Override
     public String getPassword() {
@@ -136,20 +119,7 @@ public class User implements UserDetails {
         return roles;
     }
 
-    public String getRole() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return String.join(" ", AuthorityUtils.authorityListToSet(getRoles()));
-    }
-
     public void setRoles(Collection<Role> roles) {
         this.roles = roles;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 }
