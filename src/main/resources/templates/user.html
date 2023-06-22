@@ -1,36 +1,37 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Spring Security Example</title>
+  <meta charset="UTF-8">
+  <title>User</title>
 </head>
 <body>
-<!--<h1>User, welcome spring boot security page!</h1>-->
-<h1 th:text="'User, ' + ${user.name} + ', welcome spring boot security page!'"/>
-<br/><br/>
-<div>
-    <table border="1">
-        <tr>
-            <th>ID</th>
-            <th>Имя</th>
-            <th>Фамилия</th>
-            <th>Возраст</th>
-        </tr>
+<a href="/logout">LOGOUT</a>
+<br/>
+<br/>
+<br/>
+<h1>User Page</h1>
+<table border="1">
+  <tr>
+    <th>ID</th>
+    <th>First Name</th>
+    <th>Last Name</th>
+    <th>Age</th>
+    <th>E-mail</th>
+    <th>Role</th>
 
-        <tr th:each="us : ${user}">
-            <td th:text="${us.id}"/>
-            <td th:text="${us.name}"/>
-            <td th:text="${us.surname}"/>
-            <td th:text="${us.age}"/>
-        </tr>
-    </table>
-    <br><br>
-    <li sec:authorize="isAuthenticated()" class="nav-item">
-        <form class="align-middle" th:action="@{/logout}" method="GET">
-            <div class="input-group-prepend">
-                <button class="btn btn-secondary btn-sm" type="submit">Выйти</button>
-            </div>
-        </form>
-    </li>
-</div>
+  </tr>
+  <tr th:object="${usera}">
+    <td th:utext="${usera.id}">ID</td>
+    <td th:utext="${usera.firstName}">First Name</td>
+    <td th:utext="${usera.lastname}">Last Name</td>
+    <td th:utext="${usera.age}">Age</td>
+    <td th:utext="${usera.email}">E-mail</td>
+    <td th:utext="${usera.roleToString()}"></td>
+
+  </tr>
+</table>
+
+
+
 </body>
 </html>

@@ -3,56 +3,67 @@ package ru.kata.spring.boot_security.demo.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
+import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.entity.User;
+import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
 
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
     private final UserService userService;
-
+    private final RoleService roleService;
     @Autowired
-    public AdminController(UserService userService) {
+    public AdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
+        this.roleService = roleService;
     }
 
-    @RequestMapping
-    public String showAllUser(Model model) {
-        List<User> allUsers = userService.getAllUsers();
-        model.addAttribute("users", allUsers);
+    @GetMapping
+    public String userPage(Model model) {
+        model.addAttribute("users", userService.listUsers());
         return "users";
     }
 
-    @RequestMapping("/add")
-    public String add(Model model) {
-        User user = new User();
-        model.addAttribute("user", user);
-        return "user-edit";
+    @GetMapping("/new")
+    public String newUser(Model model) {
+        model.addAttribute("user", new User());
+        Set<Role> roles = new HashSet<>(roleService.getAllRoles());
+        model.addAttribute("allroles", roles);
+        return "/new";
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/edit")
-    public String createOrUpdateUser(@ModelAttribute User user) {
-        userService.saveUser(user);
+    @PostMapping()
+    public String create(@ModelAttribute("user") User user) {
+        userService.add(user);
         return "redirect:/admin";
     }
 
-    @RequestMapping("/edit/{id}")
-    public String editUser(@PathVariable(value = "id") Long id, Model model) {
-        User user = userService.getById(id);
-        model.addAttribute("user", user);
-        return "user-edit";
+    @GetMapping("/{id}/edit")
+    public String edit(@PathVariable("id") int id, Model model) {
+        model.addAttribute("user", userService.show(id));
+        Set<Role> roles = new HashSet<>(roleService.getAllRoles());
+        model.addAttribute("allroles", roles);
+        return "/edit";
     }
 
-    @RequestMapping(value = "/delete/{id}")
-    public String deleteUser(@PathVariable Long id) {
+    @PatchMapping("/{id}")
+    public String update(@ModelAttribute("user") User user) {
+        userService.update(user);
+        return "redirect:/admin";
+    }
+
+    @DeleteMapping("/{id}")
+    public String delete(@PathVariable("id") int id) {
         userService.delete(id);
         return "redirect:/admin";
     }
+
+
 }
