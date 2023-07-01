@@ -1,82 +1,99 @@
 package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.entity.User;
 import ru.kata.spring.boot_security.demo.repository.UserRepository;
-
+import ru.kata.spring.boot_security.demo.entity.Role;
+import ru.kata.spring.boot_security.demo.entity.User;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Service
-public class UserServiceImpl implements UserService, UserDetailsService {
+public class UserServiceImpl implements UserService{
 
+    private static final Logger loger = Logger.getLogger(UserServiceImpl.class.getName());
 
+    private final PasswordEncoder bCryptPasswordEncoder;
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository,@Lazy PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(PasswordEncoder bCryptPasswordEncoder, UserRepository userRepository, RoleService roleService) {
+        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
+    }
+
+    @Override
+    public List<User> getAll() {
+        return userRepository.getall();
     }
 
     @Override
     @Transactional
-    public void add(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userRepository.save(user);
+    public void addUser(User user) {
+        Set<Role> roles = user.getRoles();
+        HashSet<Role> roles2 = new  HashSet<>();
+
+        for(Role role:roles){
+            roles2.add(roleService.getByName(role.getRolename()));
+        }
+        user.setRoles(roles2);
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userRepository.addUser(user);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public List<User> listUsers() {
-        return userRepository.findAll();
+    public User getUser(long id) {
+        return userRepository.getUser(id);
     }
 
-    @Transactional(readOnly = true)
     @Override
-    public User show(int id) {
-        return userRepository.getById(id);
+    @Transactional
+    public void deleteUser(long id) {
+        userRepository.deleteUser(id);
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(User user, long id) {
+        Set<Role> roles = user.getRoles();
+        HashSet<Role> roles2 = new HashSet<>();
+
+        for(Role role:roles){
+            roles2.add(roleService.getByName(role.getRolename()));
+            loger.log(Level.WARNING,role.getRole());
+        }
+        user.setRoles(roles2);
+        userRepository.updateUser(user,id);
+    }
+
+    @Override
+    public User getUserByName(String username) {
+        return userRepository.getUserByName(username);
     }
 
     @Transactional
     @Override
-    public void update(User updatedUser) {
-
-        updatedUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-
-        userRepository.save(updatedUser);
-    }
-
-    @Transactional
-    @Override
-    public void delete(int id) {
-
-        userRepository.deleteById(id);
-    }
-
-
-
-    @Override
-    @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserDetails user = findUsersByEmail(username);
-        if (user == null) {
-            throw new UsernameNotFoundException(String.format("User '%s' not found", username));
+
+        User user = userRepository.getUserByName(username);
+        if (user == null){
+            throw new UsernameNotFoundException("User not found!");
+        }
+
+        for (Role r : user.getRoles()){
+            loger.log(Level.WARNING,r.getRole());
         }
 
         return user;
-    }
-
-    @Override
-    public User findUsersByEmail(String email) {
-        return userRepository.findUsersByEmail(email);
     }
 
 }

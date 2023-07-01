@@ -2,29 +2,34 @@ package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import ru.kata.spring.boot_security.demo.entity.Role;
 import ru.kata.spring.boot_security.demo.repository.RoleRepository;
+import ru.kata.spring.boot_security.demo.entity.Role;
 
-import javax.persistence.EntityManager;
-import java.util.List;
+import java.util.Set;
 
 @Service
-public class RoleServiceImpl implements RoleService{
+public class RoleServiceImpl implements RoleService {
+
     private final RoleRepository roleRepository;
 
     @Autowired
-    public RoleServiceImpl(RoleRepository roleRepository, EntityManager entityManager) {
+    public RoleServiceImpl(RoleRepository roleRepository) {
         this.roleRepository = roleRepository;
     }
+
+
     @Override
-    public void saveRole(Role role) {
-        roleRepository.save(role);
+    public Set<Role> getallrole() {
+        return roleRepository.getallrole();
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<Role> getAllRoles() {
-        return roleRepository.findAll();
+    public Role getRolebyId(long id) {
+        return roleRepository.getRolebyId(id);
+    }
+
+    @Override
+    public Role getByName(String rolename) {
+        return roleRepository.getByName(rolename);
     }
 }
